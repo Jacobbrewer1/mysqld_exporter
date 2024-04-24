@@ -146,10 +146,6 @@ func (ch *MySqlConfigHandler) ReloadConfig(filename string, mysqldAddress string
 			level.Error(logger).Log("msg", "failed to parse config", "section", sectionName, "err", err)
 			continue
 		}
-		if err := mysqlcfg.validateConfig(); err != nil {
-			level.Error(logger).Log("msg", "failed to validate config", "section", sectionName, "err", err)
-			continue
-		}
 
 		m[sectionName] = *mysqlcfg
 	}
@@ -160,14 +156,6 @@ func (ch *MySqlConfigHandler) ReloadConfig(filename string, mysqldAddress string
 	ch.Lock()
 	ch.Config = config
 	ch.Unlock()
-	return nil
-}
-
-func (m MySqlConfig) validateConfig() error {
-	if m.User == "" {
-		return fmt.Errorf("no user specified in section or parent")
-	}
-
 	return nil
 }
 
