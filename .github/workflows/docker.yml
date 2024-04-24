@@ -50,4 +50,4 @@ jobs:
       - name: Make all
         run: |
           export CGO_ENABLED=0
-          make docker
+          make ci
