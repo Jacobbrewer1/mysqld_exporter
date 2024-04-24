@@ -12,6 +12,10 @@
 # limitations under the License.
 
 # Needs to be defined before including Makefile.common to auto-generate targets
+hash = $(shell git rev-parse --short HEAD)
+registry = ghcr.io/jacobbrewer1/mysqld_exporter
+DATE = $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
+
 DOCKER_ARCHS ?= amd64 armv7 arm64
 
 all: vet
@@ -28,3 +32,21 @@ test-docker-single-exporter:
 	./test_image.sh "$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)" 9104
 
 .PHONY: test-docker
+
+clean:
+	@echo "Cleaning up"
+	# Remove the bin directory
+	rm -rf bin
+
+linux: clean
+	@echo "Building for linux"
+	GOOS=linux GOARCH=amd64 go build -o bin/app
+
+docker: linux
+	@echo "Building docker image"
+	# Build the docker image
+	docker build -t $(registry):$(hash) -t $(registry):latest .
+
+ci: docker
+	# Push the image to the registry
+	docker push $(registry):$(hash) && docker push $(registry):latest

@@ -9,3 +9,6 @@
 .idea
 *.iml
 /vendor
+
+# Ignore all binary files
+**/bin/

@@ -30,6 +30,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 
 	"gopkg.in/ini.v1"
+
+	"github.com/prometheus/mysqld_exporter/vault"
 )
 
 var (
@@ -161,8 +163,29 @@ func (ch *MySqlConfigHandler) ReloadConfig(filename string, mysqldAddress string
 
 func (m MySqlConfig) FormDSN(target string) (string, error) {
 	config := mysql.NewConfig()
-	config.User = m.User
-	config.Passwd = m.Password
+
+	vaultAddr := os.Getenv("VAULT_ADDR")
+	if vaultAddr == "" {
+		return "", fmt.Errorf("no VAULT_ADDR environment variable provided")
+	}
+
+	vaultDbPath := os.Getenv("VAULT_DB_PATH")
+	if vaultDbPath == "" {
+		return "", fmt.Errorf("no VAULT_DB_PATH environment variable provided")
+	}
+
+	vc, err := vault.NewClient(vaultAddr)
+	if err != nil {
+		return "", fmt.Errorf("unable to initialize Vault client: %w", err)
+	}
+
+	vs, err := vc.GetSecrets(vaultDbPath)
+	if err != nil {
+		return "", fmt.Errorf("error getting database secrets: %w", err)
+	}
+
+	config.User = fmt.Sprintf("%s", vs["username"])
+	config.Passwd = fmt.Sprintf("%s", vs["password"])
 	config.Net = "tcp"
 	if target == "" {
 		if m.Socket == "" {
