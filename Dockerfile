@@ -1,12 +1,10 @@
-ARG ARCH="amd64"
-ARG OS="linux"
-FROM quay.io/prometheus/busybox-${OS}-${ARCH}:latest
-LABEL maintainer="The Prometheus Authors <prometheus-developers@googlegroups.com>"
+FROM golang:1.21.1
 
-ARG ARCH="amd64"
-ARG OS="linux"
-COPY .build/${OS}-${ARCH}/mysqld_exporter /bin/mysqld_exporter
+WORKDIR /app
 
-EXPOSE      9104
-USER        nobody
-ENTRYPOINT  [ "/bin/mysqld_exporter" ]
+# Copy the binary from the build
+COPY ./bin/app /app/app
+
+RUN ["chmod", "+x", "./app"]
+
+ENTRYPOINT ["/app/app"]
