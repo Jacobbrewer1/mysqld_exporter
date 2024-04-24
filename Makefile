@@ -46,3 +46,7 @@ docker: linux
 	@echo "Building docker image"
 	# Build the docker image
 	docker build -t $(registry):$(hash) -t $(registry):latest .
+
+ci: docker
+	# Push the image to the registry
+	docker push $(registry):$(hash) && docker push $(registry):latest
